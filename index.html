@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matematik Modellashtirish Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --border: #1e3050;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --correct: #10b981;
+    --wrong: #ef4444;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --gold: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 20% 20%, rgba(0,212,255,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(124,58,237,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* SCREENS */
+  .screen { display: none; position: relative; z-index: 1; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; }
+
+  /* HOME */
+  #home {
+    text-align: center;
+    gap: 2rem;
+  }
+  .logo-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    padding: 0.4rem 1rem;
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 2px;
+    display: inline-block;
+    animation: pulse-border 3s infinite;
+  }
+  @keyframes pulse-border {
+    0%, 100% { border-color: rgba(0,212,255,0.3); }
+    50% { border-color: rgba(0,212,255,0.8); box-shadow: 0 0 20px rgba(0,212,255,0.2); }
+  }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #e2e8f0 0%, var(--accent) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 480px;
+    line-height: 1.6;
+  }
+  .stats-row {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 2rem;
+    text-align: center;
+  }
+  .stat-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--accent);
+    display: block;
+  }
+  .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.3rem; }
+  
+  .btn-group { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+  .btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    padding: 0.9rem 2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,255,0.3); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.4);
+  }
+  .btn-secondary:hover { background: rgba(0,212,255,0.08); border-color: var(--accent); }
+  .btn-danger {
+    background: rgba(239,68,68,0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.3);
+  }
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    width: 100%;
+    max-width: 700px;
+    margin-bottom: 1.5rem;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+  }
+  .q-counter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .score-live {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* QUIZ CARD */
+  #quiz { gap: 0; align-items: center; justify-content: flex-start; padding-top: 2rem; padding-bottom: 2rem; }
+  .quiz-card {
+    width: 100%;
+    max-width: 700px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .quiz-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .q-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .q-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text);
+    margin-bottom: 2rem;
+  }
+  .options-grid {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: rgba(0,212,255,0.5);
+    background: rgba(0,212,255,0.06);
+    transform: translateX(4px);
+  }
+  .option-letter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .option-btn:hover:not(:disabled) .option-letter {
+    background: rgba(0,212,255,0.2);
+    color: var(--accent);
+  }
+  .option-btn.correct {
+    border-color: var(--correct);
+    background: rgba(16,185,129,0.12);
+    animation: pop 0.3s ease;
+  }
+  .option-btn.correct .option-letter {
+    background: var(--correct);
+    color: white;
+  }
+  .option-btn.wrong {
+    border-color: var(--wrong);
+    background: rgba(239,68,68,0.1);
+  }
+  .option-btn.wrong .option-letter {
+    background: var(--wrong);
+    color: white;
+  }
+  .option-btn:disabled { cursor: default; }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+
+  /* FEEDBACK */
+  .feedback-bar {
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    animation: slide-up 0.3s ease;
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .feedback-bar.correct { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #34d399; display: flex; }
+  .feedback-bar.wrong { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #f87171; display: flex; }
+  .feedback-icon { font-size: 1.3rem; }
+
+  .quiz-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    gap: 1rem;
+  }
+  .btn-next {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    padding: 0.75rem 1.75rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: none;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+    transition: all 0.2s;
+    margin-left: auto;
+  }
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,212,255,0.3); }
+  .btn-next.visible { display: block; animation: slide-up 0.3s ease; }
+
+  /* RESULTS */
+  #results { gap: 1.5rem; text-align: center; }
+  .result-score-ring {
+    width: 160px;
+    height: 160px;
+    position: relative;
+  }
+  .ring-svg { transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: var(--border); stroke-width: 8; }
+  .ring-fill { fill: none; stroke: url(#ringGrad); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1); }
+  .ring-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .ring-pct {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1;
+  }
+  .ring-sub { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; }
+  .result-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+  .result-stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .rstat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    min-width: 100px;
+  }
+  .rstat-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.75rem;
+    font-weight: 600;
+  }
+  .rstat-val.green { color: var(--correct); }
+  .rstat-val.red { color: var(--wrong); }
+  .rstat-val.blue { color: var(--accent); }
+  .rstat-key { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 0.3rem; }
+
+  /* UNANSWERED MODE NOTICE */
+  .mode-badge {
+    background: rgba(245,158,11,0.12);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: var(--gold);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    display: inline-block;
+  }
+
+  /* GRID progress on home */
+  .dots-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    max-width: 400px;
+    justify-content: center;
+  }
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .dot.answered { background: var(--correct); }
+  .dot.wrong-answered { background: var(--wrong); }
+
+  @media (max-width: 600px) {
+    .quiz-card { padding: 1.5rem; }
+    .btn-group { flex-direction: column; align-items: stretch; }
+    .stats-row { gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HOME SCREEN -->
+<div id="home" class="screen active">
+  <div class="logo-badge">Quiz Tizimi</div>
+  <h1>Matematik<br>Modellashtirish</h1>
+  <p class="subtitle">218 ta savol, har safar 25 tasini tasodifiy tanlash. Javob tartibi aralashtirilib beriladi.</p>
+  
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-number" id="hs-total">218</span>
+      <div class="stat-label">Jami savollar</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number" id="hs-answered">0</span>
+      <div class="stat-label">Javob berilgan</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number" id="hs-remaining">218</span>
+      <div class="stat-label">Qolganlar</div>
+    </div>
+  </div>
+
+  <div class="dots-grid" id="dots-grid"></div>
+
+  <div class="btn-group">
+    <button class="btn btn-primary" onclick="startQuiz('all')">▶ Yangi Test (25 ta)</button>
+    <button class="btn btn-secondary" id="btn-unanswered" onclick="startQuiz('unanswered')">⚡ Javob Berilmaganlar</button>
+    <button class="btn btn-danger" onclick="resetProgress()">↺ Progressni Tozalash</button>
+  </div>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div id="quiz" class="screen">
+  <div class="progress-wrap">
+    <div class="progress-meta">
+      <span class="q-counter" id="q-counter">Savol 1 / 25</span>
+      <span class="score-live" id="score-live">✓ 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="q-number" id="q-number">SAVOL 001</div>
+    <div class="q-text" id="q-text">Loading...</div>
+    <div class="options-grid" id="options-grid"></div>
+    <div class="feedback-bar" id="feedback-bar">
+      <span class="feedback-icon" id="feedback-icon"></span>
+      <span id="feedback-text"></span>
+    </div>
+    <div class="quiz-footer">
+      <button class="btn btn-secondary" onclick="goHome()" style="font-size:0.8rem;padding:0.6rem 1rem;">⬅ Orqaga</button>
+      <button class="btn-next" id="btn-next" onclick="nextQuestion()">Keyingi →</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results" class="screen">
+  <div id="mode-badge-result"></div>
+  <div class="result-score-ring">
+    <svg class="ring-svg" width="160" height="160" viewBox="0 0 160 160">
+      <defs>
+        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#00d4ff"/>
+          <stop offset="100%" style="stop-color:#7c3aed"/>
+        </linearGradient>
+      </defs>
+      <circle class="ring-track" cx="80" cy="80" r="68"/>
+      <circle class="ring-fill" id="ring-fill" cx="80" cy="80" r="68" stroke-dasharray="427.26" stroke-dashoffset="427.26"/>
+    </svg>
+    <div class="ring-label">
+      <span class="ring-pct" id="ring-pct">0%</span>
+      <span class="ring-sub">BALL</span>
+    </div>
+  </div>
+
+  <h2 class="result-title" id="result-title">Natija</h2>
+
+  <div class="result-stats">
+    <div class="rstat"><div class="rstat-val green" id="r-correct">0</div><div class="rstat-key">To'g'ri</div></div>
+    <div class="rstat"><div class="rstat-val red" id="r-wrong">0</div><div class="rstat-key">Noto'g'ri</div></div>
+    <div class="rstat"><div class="rstat-val blue" id="r-total">25</div><div class="rstat-key">Jami</div></div>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn btn-primary" onclick="startQuiz('all')">▶ Yana O'ynash</button>
+    <button class="btn btn-secondary" id="btn-retry-unanswered" onclick="startQuiz('unanswered')">⚡ Qolganlarni O'rganish</button>
+    <button class="btn btn-secondary" onclick="goHome()">⬅ Bosh Sahifa</button>
+  </div>
+</div>
+
+<script>
+const ALL_QUESTIONS = [{"question": "Matematik modellashtirish nima?", "options": ["jarayonlarning matematik ifodasi", "raqamlar bilan ishlash tushuniladi", "Kompyuter dasturlash tili", "Fizika qonunlarini o'rganish"], "correct": 0}, {"question": "Matematik model qanday turlarga bo'linadi?", "options": ["Deterministik va stoxastik", "chiziqli", "nolineyn", "differensial tenglamalar"], "correct": 0}, {"question": "Modellashtirish jarayonining birinchi bosqichi nima?", "options": ["Muammoni qo'yish va maqsadni aniqlash", "Dastur yozish va algoritmini ishlab chiqish", "Natijalarni chop etish", "Grafik chizish"], "correct": 0}, {"question": "Matematik modelning asosiy xususiyati nima?", "options": ["Haqiqatni soddalashtirilgan ifodasi", "To'liq haqiqatni aks ettirishi", "tasvirlash vazifasi", "Hech qanday xususiyatga ega emas"], "correct": 0}, {"question": "Deterministik model nima?", "options": ["Kirish va chiqish aniq bo'ladigan model", "Tasodifiy kattaliklarni o'z ichiga olgan model", "statistik ma'lumotlar bilan ishlovchi model", "Hech qanday natija bermaydigan model"], "correct": 0}, {"question": "Stoxastik model qachon qo'llaniladi?", "options": ["Tasodifiy omillar ta'sir qilganda", "Barcha ma'lumotlar aniq bo'lganda", "fizika muammolarida", "geometriya masalalarida"], "correct": 0}, {"question": "Matematik modellashtirishning maqsadi nima?", "options": ["jarayonni tahlil va bashorat qilish", "formulalar yodlash", "Kompyuter o'yinlari yaratish", "San'at asarlarini baholash"], "correct": 0}, {"question": "Modelning adekvatligi nimani anglatadi?", "options": ["Modelning haqiqiy jarayonga mos kelishi", "Modelning murakkabligi", "Modelning o'lchami va mashtabligi", "Modelning rangi va o'lchamlarining mosligi"], "correct": 0}, {"question": "Chiziqli model nima?", "options": ["chiziqli bog'liqlik mavjud bo'lgan model", "to'g'ri chiziqlar bilan ishlovchi model", "geometrik shakllar bilan ishlovchi model", "Tasodifiy sonlar bilan ishlovchi model"], "correct": 0}, {"question": "Modellashtirishda ideallash nima?", "options": ["Keraksizni tashlab, muhim jihatlarni ajratib olish", "Barcha ma'lumotlarni o'z ichiga olish", "Modelni iloji boricha murakkablashtirish va hisoblash", "tasodifiy kattaliklarni olish"], "correct": 0}, {"question": "Matematik modelning tekshirilishi nima maqsadda amalga oshiriladi?", "options": ["Modelning to'g'riligini va adekvatligini baholash", "Modelni murakkablashtirish", "Modelni o'chirish", "Modelni nusxalash"], "correct": 0}, {"question": "Dinamik model nima?", "options": ["Vaqt o'tishi bilan o'zgaruvchi jarayonlarni ifodalovchi model", "statik holatlarni ifodalovchi model vaqtga bog'liq emas", "geometrik shakllarni ifodalovchi model", "algebraik ifodalardan tashkil topgan model"], "correct": 0}, {"question": "Statik model nima?", "options": ["Ma'lum bir vaqt momentidagi holatni ifodalovchi model", "Vaqt o'tishi bilan o'zgaruvchi model", "harakatlanuvchi jismlar uchun", "iqtisodiy jarayonlar uchun"], "correct": 0}, {"question": "Matematik modellashtirishda analogiya nima?", "options": ["jarayonlarni bir-biriga moslashtirish", "raqamlarni solishtirish", "geometrik shakllarni solishtirish", "Hech qanday ahamiyatga ega emas"], "correct": 0}, {"question": "Matematik modellashtirishda xatolik qayerdan kelishi mumkin?", "options": ["Modelning soddalashtirilishidan va ma'lumotlarning noaniqligidan", "hisoblash xatolaridan", "printer xatolaridan", "Hech qanday xatolik bo'lmaydi"], "correct": 0}, {"question": "Matematik modelning optimalligi nima?", "options": ["Maqsadga erishish uchun eng samarali yechimni topish", "Eng murakkab modelni tanlash", "Eng oddiy modelni tanlash", "Ixtiyoriy modelni tanlash"], "correct": 0}, {"question": "Matematik modellashtirishda identifikatsiya nima?", "options": ["Model parametrlarini haqiqiy ma'lumotlarga moslashtirish", "Modelni o'chirish", "Modelni nusxalash", "Modelni shifrlash"], "correct": 0}, {"question": "Matematik modelning barqarorligi nima?", "options": ["Kichik o'zgarishlarga nisbatan sezilmaydigan reaksiya", "Katta o'zgarishlarga nisbatan kuchli reaksiya", "Hech qanday o'zgarishsizlik", "Tasodifiy o'zgarishlar"], "correct": 0}, {"question": "Odatiy differensial tenglama (ODT) nima?", "options": ["Bir o'zgaruvchiga nisbatan hosilalarni o'z ichiga olgan tenglama", "Ikki o'zgaruvchiga nisbatan hosilalarni o'z ichiga olgan tenglama", "algebraik tenglama", "trigonometrik tenglama"], "correct": 0}, {"question": "Birinchi tartibli ODT umumiy yechimi nechta o'zgaruvchan o'zgaruvchini o'z ichiga oladi?", "options": ["1 ta", "2 ta", "3 ta", "0 ta"], "correct": 0}, {"question": "Matritsaning determinanti nima?", "options": ["Kvadrat matritsaga mos kelgan son", "Har qanday matritsaga mos kelgan son", "vektorga mos kelgan son", "skalyarga mos kelgan son"], "correct": 0}, {"question": "Simmetrik matritsa nima?", "options": ["A = A^T bo'lgan matritsa", "A = -A^T bo'lgan matritsa", "diagonal matritsa", "nol matritsa"], "correct": 0}, {"question": "Optimallashtirish masalasi nima?", "options": ["Maqsad funktsiyasining ekstremumini topish", "tenglamalarni yechish", "grafiklarni chizish", "jadvallarni to'ldirish"], "correct": 0}, {"question": "Sonli usul nima?", "options": ["Yaqinlash yechimlarni topish usuli", "aniq yechimlarni topish usuli", "grafik usul", "algebraik usul"], "correct": 0}, {"question": "Nyuton usuli nima uchun ishlatiladi?", "options": ["Tenglamalar va tenglamalar sistemalarini yechish uchun", "integrallash uchun", "differensiallash uchun", "matritsalarni aylantirish uchun"], "correct": 0}, {"question": "Garmonik tebranishlar tenglamasi qanday?", "options": ["x'' + \u03c9\u00b2x = 0", "x' + x = 0", "x = vt", "x = at\u00b2"], "correct": 0}, {"question": "Mayatnikning matematik modeli qanday?", "options": ["\u03c6'' + (g/l)sin(\u03c6) = 0", "\u03c6 = \u03c9t", "\u03c6 = at\u00b2", "\u03c6 = sin(t)"], "correct": 0}, {"question": "Issiqlik o'tkazuvchanlik tenglamasi nima?", "options": ["\u2202u/\u2202t = a\u00b2\u2202\u00b2u/\u2202x\u00b2", "u = kt", "u = kx", "u = constant"], "correct": 0}, {"question": "To'lqin tenglamasi nima?", "options": ["\u2202\u00b2u/\u2202t\u00b2 = c\u00b2\u2202\u00b2u/\u2202x\u00b2", "\u2202u/\u2202t = c\u00b2\u2202\u00b2u/\u2202x\u00b2", "u = ct", "u = cx"], "correct": 0}, {"question": "Laplas tenglamasi nima?", "options": ["\u2207\u00b2u = 0", "\u2202u/\u2202t = 0", "u = 0", "\u2202\u00b2u/\u2202t\u00b2 = 0"], "correct": 0}, {"question": "Poisson tenglamasi nima?", "options": ["\u2207\u00b2u = f", "\u2207\u00b2u = 0", "\u2202u/\u2202t = 0", "u = 0"], "correct": 0}, {"question": "Bessel tenglamasi nima?", "options": ["x\u00b2y'' + xy' + (x\u00b2 - n\u00b2)y = 0", "y'' + y = 0", "y' + y = 0", "y = x\u00b2"], "correct": 0}, {"question": "Legendre tenglamasi nima?", "options": ["(1-x\u00b2)y'' - 2xy' + n(n+1)y = 0", "y'' + y = 0", "y' + y = 0", "y = x"], "correct": 0}, {"question": "Elektr zanjirining tenglamasi nima?", "options": ["Lq'' + Rq' + q/C = E", "q = It", "q = CV", "q = constant"], "correct": 0}, {"question": "Tezlik potensiali nima?", "options": ["Suyuqlik oqimini tavsiflovchi funktsiya", "bosimni tavsiflovchi funktsiya", "zichlikni tavsiflovchi funktsiya", "haroratni tavsiflovchi funktsiya"], "correct": 0}, {"question": "Navier-Stokes tenglamalari nima?", "options": ["Suyuqlik va gaz dinamikasi tenglamalari", "qattiq jismlar mexanikasi", "issiqlik o'tkazuvchanlik", "elektromagnit maydon"], "correct": 0}, {"question": "Maxwell tenglamalari nima?", "options": ["Elektromagnit maydon tenglamalari", "mexanika tenglamalari", "issiqlik tenglamalari", "akustika tenglamalari"], "correct": 0}, {"question": "Biryuzning sharti nima?", "options": ["Mexanik energiya saqlanish sharti", "impuls saqlanish sharti", "massa saqlanish sharti", "zaryad saqlanish sharti"], "correct": 0}, {"question": "Modelning adekvatligi nimani anglatadi?", "options": ["Haqiqatga mos kelishi", "Murakkabligi", "O'lchami", "Tezligi"], "correct": 0}, {"question": "Deterministik modelda nima aniq?", "options": ["Natija", "Vaqt", "Joy", "Sharoit"], "correct": 0}, {"question": "Stoxastik model nima bilan ishlaydi?", "options": ["Tasodifiylik", "Aniqlik", "Doimiylik", "Statik"], "correct": 0}, {"question": "Modellashtirishning birinchi bosqichi nima?", "options": ["Masala qo'yish", "Hisoblash", "Tekshirish", "Tahlil"], "correct": 0}, {"question": "Matematik model qanday ifodalanadi?", "options": ["Formula, tenglama", "Rasm, chizma", "Matn, gap", "Jadval, ro'yxat"], "correct": 0}, {"question": "Soddalashtirish nimani anglatadi?", "options": ["Keraksizni tashlash", "Murakkablashtirish", "To'ldirish", "Saqlash"], "correct": 0}, {"question": "Dinamik model nima bilan bog'liq?", "options": ["Vaqt", "Rang", "Og'irlik", "Hajm"], "correct": 0}, {"question": "Statik model qanday holatni ko'rsatadi?", "options": ["Bir nuqtada", "Harakatda", "O'zgarishda", "Rivojlanishda"], "correct": 0}, {"question": "Analogiya usuli nima?", "options": ["O'xshashlikdan foydalanish", "Farq qidirish", "Taqqoslash", "Ajratish"], "correct": 0}, {"question": "Modelning barqarorligi nima?", "options": ["Kichik o'zgarishga sezmaslik", "Tez o'zgarish", "Katta reaksiya", "O'zgaruvchanlik"], "correct": 0}, {"question": "Identifikatsiya jarayoni nima?", "options": ["Parametrni moslashtirish", "Modelni o'chirish", "Ma'lumotni yashirish", "Natijani o'zgartirish"], "correct": 0}, {"question": "Chiziqli bog'liqlik qanday?", "options": ["To'g'ri chiziqli", "Egri chiziqli", "Uzluksiz", "Diskret"], "correct": 0}, {"question": "Nolineyn model qanday?", "options": ["Egri chiziqli", "To'g'ri chiziqli", "Oddiy", "Soddalashgan"], "correct": 0}, {"question": "Idealizlash nima?", "options": ["Muhimini ajratish", "Barchasini olish", "Murakkablashtirish", "To'ldirish"], "correct": 0}, {"question": "Matematik kutilma nima?", "options": ["O'rtacha qiymat", "Maksimal qiymat", "Minimal qiymat", "Oxirgi qiymat"], "correct": 0}, {"question": "Modellashtirish natijasi nima?", "options": ["Bashorat", "Tasvir", "Tasvirlash", "Saqlash"], "correct": 0}, {"question": "Modelning aniqligi nimaga bog'liq?", "options": ["Ma'lumotlarga", "Ranggag", "O'lchamga", "Tezlikka"], "correct": 0}, {"question": "Simulyatsiya nima?", "options": ["Imitatsiya", "Hisoblash", "Tekshirish", "Tahlil"], "correct": 0}, {"question": "Algoritmik model nima?", "options": ["Ketma-ket amallar", "Bitta formula", "Bir tenglama", "Bitta grafik"], "correct": 0}, {"question": "Geometrik model nima?", "options": ["Shakl va hajm", "Vaqt va tezlik", "Massa va zichlik", "Harorat va bosim"], "correct": 0}, {"question": "Algebraik model nima?", "options": ["Tenglamalar sistemasi", "Grafik chizma", "Jadval ma'lumot", "Matn tavsif"], "correct": 0}, {"question": "Matematik model nima?", "options": ["Real obyektni matematik tilda ifodalovchi model", "tajriba yo'li bilan aniqlanadigan model", "Fizik jarayonning natijasi", "Diagramma va chizma shaklidagi model"], "correct": 0}, {"question": "Modellashtirishning asosiy maqsadi nima?", "options": ["Jarayon va hodisalarni o'rganish hamda natijalarni oldindan aytish", "Ma'lumotlarni yodlash", "fizik tajribalarni qisqartirish", "Nazariyani murakkablashtirish"], "correct": 0}, {"question": "Model so'zining ma'nosi qanday?", "options": ["Lotincha \u201cmodulus\u201d \u2013 o'lchov, me'yor", "Arabcha \u201cmisol\u201d \u2013 shakl", "Yunoncha \u201clogos\u201d \u2013 fikr", "Inglizcha \u201cmodel\u201d \u2013 nusxa"], "correct": 0}, {"question": "Fizik modelga misol keltiring.", "options": ["Samolyot yoki kema maketi", "Differensial tenglama", "Chizma yoki sxema", "Iqtisodiy tahlil"], "correct": 0}, {"question": "Matematik modellashtirish deganda nima tushuniladi?", "options": ["Jarayonlarni matematik tilda ifodalash va o'rganish", "laboratoriyada tajriba o'tkazish", "Grafik chizish", "Hisoblash mashinalarini o'rganish"], "correct": 0}, {"question": "Modelning adekvatligi nimani anglatadi?", "options": ["Model real obyektni to'g'ri aks ettiradi", "Model  nazariy ma'lumot beradi", "Model murakkablik darajasini oshiradi", "Modelda aniqlik kamayadi"], "correct": 0}, {"question": "Modellarni nechta asosiy turga ajratish mumkin?", "options": ["Fizik, grafik va matematik", "Nazariy va amaliy", "Biologik va iqtisodiy", "Deterministik va statistik"], "correct": 0}, {"question": "Abstrakt modellar qaysilar?", "options": ["Matematik, mantiqiy modellar", "Fizik asboblar", "Kimyoviy reaksiyalar", "Tajriba maydonlari"], "correct": 0}, {"question": "Matematik model qanday ifodalanadi?", "options": ["Tenglama yoki tenglamalar sistemasi yordamida", "matnli tavsif orqali", "jadval orqali", "Diagramma orqali"], "correct": 0}, {"question": "Statik modelda vaqt faktori qanday bo'ladi?", "options": ["Vaqt hisobga olinmaydi", "vaqt o'zgaradi", "koordinata o'zgaradi", "Tizim harakatsiz"], "correct": 0}, {"question": "Dinamik modelda vaqtning ahamiyati qanday?", "options": ["Asosiy o'zgaruvchi sifatida hisobga olinadi", "E'tiborga olinmaydi", "grafikda ko'rsatiladi", "Tashqi omil sifatida olinadi"], "correct": 0}, {"question": "Matematik modellashtirishning bosqichlari nechta?", "options": ["Obyektni o'rganish, model tuzish, yechish, tahlil qilish", "modelni yozish", "tajriba o'tkazish", "natijani yozish"], "correct": 0}, {"question": "Obyektni o'rganish bosqichida nima qilinadi?", "options": ["Ma'lumotlar yig'iladi va tahlil qilinadi", "Dastur yoziladi", "Grafik chiziladi", "Natija e'lon qilinadi"], "correct": 0}, {"question": "Matematik modellashtirishda analitik usul deganda nima tushuniladi?", "options": ["Model tenglama va formulalar orqali ifodalanadi", "Model tajriba asosida olinadi", "dasturlash orqali yechiladi", "Hisoblash usuli bo'lmaydi"], "correct": 0}, {"question": "Eksperimental model nimani bildiradi?", "options": ["Tajriba natijasida yaratilgan model", "Hisoblash dasturi", "Nazariy gipoteza", "matematik formula"], "correct": 0}, {"question": "Modelning universalligi nimani bildiradi?", "options": ["Bir model turli o'xshash obyektlarga tatbiq etilishi", "Model  bitta obyekt uchun", "Modelda  vaqt omili", "Model murakkab bo'lishi"], "correct": 0}, {"question": "Sezgirlik darajasi past model deganda nima tushuniladi?", "options": ["Asosiy faktorlar o'zgarishiga natija kuchli ta'sir etmaydi", "Model juda noaniq", "Modelda ko'p xatolik bor", "Modelni ishlatish qiyin"], "correct": 0}, {"question": "Iqtisodiy modelning maqsadi nima?", "options": ["Iqtisodiy jarayonlarni tahlil qilish va prognozlash", "moliyaviy hujjatlarni yozish", "Nazariy jadval tuzish", "Tajriba o'tkazish"], "correct": 0}, {"question": "Biologik model qanday holatlarda qo'llaniladi?", "options": ["Tirik organizmlar faoliyatini o'rganishda", "texnika sohasida", "matematika uchun", "Kimyoviy modellar bilan birga"], "correct": 0}, {"question": "Deterministik model nima?", "options": ["Natijasi aniq bir qiymat bilan bashorat qilinadi", "Tasodifiy omillar asosida quriladi", "statistik tahlilga asoslanadi", "Real obyektni aks ettirmaydi"], "correct": 0}, {"question": "Statistik model deganda nima tushuniladi?", "options": ["Tasodifiy omillarni hisobga oluvchi model", "deterministik model", "vaqt o'zgarishini o'rganadi", "matematik formulalar yig'indisi"], "correct": 0}, {"question": "Modelni tekshirish bosqichi qanday nomlanadi?", "options": ["Verifikatsiya", "Simplifikatsiya", "Identifikatsiya", "Modifikatsiya"], "correct": 0}, {"question": "Modelni soddalashtirish jarayoni qanday ataladi?", "options": ["Simplifikatsiya", "Verifikatsiya", "Ekstrapolyatsiya", "Interpolyatsiya"], "correct": 0}, {"question": "Matematik modellashtirishda yechim topish bosqichi nima?", "options": ["Model tenglamasini yechish", "Obyektni tavsiflash", "Ma'lumot yig'ish", "Tizimni sinovdan o'tkazish"], "correct": 0}, {"question": "Empirik model deganda nima tushuniladi?", "options": ["Tajriba va kuzatish asosida yaratilgan model", "nazariy model", "Matematik formula orqali ifodalangan model", "Dasturiy model"], "correct": 0}, {"question": "Matematik modellashtirishda xatolik sababi nima bo'lishi mumkin?", "options": ["Ma'lumotlarning noaniqligi", "To'liq adekvatlik", "To'g'ri tahlil", "Ideal model tanlovi"], "correct": 0}, {"question": "Kompyuter modeli qanday model turiga kiradi?", "options": ["Amaliy matematik model", "Fizik model", "Nazariy model", "Eksperimental model"], "correct": 0}, {"question": "Obyektning tavsifini aniqlashda qanday usul qo'llaniladi?", "options": ["Identifikatsiya", "Verifikatsiya", "Soddalashtirish", "Dinamiklash"], "correct": 0}, {"question": "Matematik modellashtirishda asosiy vosita nima?", "options": ["Tenglama va funksiyalar", "Grafik va rasm", "Tajriba qurilmasi", "So'rovnoma"], "correct": 0}, {"question": "Deterministik modellar qaysi holatlarda ishlatiladi?", "options": ["Natijalar aniq va oldindan ma'lum bo'lsa", "Tasodifiylik yuqori bo'lsa", "Ma'lumotlar etishmasa", "Vaqt o'zgaruvchisi noma'lum bo'lsa"], "correct": 0}, {"question": "Statistik modellar asosan qaysi sohada qo'llaniladi?", "options": ["Iqtisodiyot va demografiyada", "fizikada", "matematika nazariyasida", "biologiyada"], "correct": 0}, {"question": "Modelning tuzilmasi qanday elementlardan iborat bo'ladi?", "options": ["Parametrlar, o'zgaruvchilar va bog'lanishlar", "o'zgaruvchilar", "parametrlar", "vaqt funksiyasi"], "correct": 0}, {"question": "Dinamik tizimlar uchun qaysi tenglama ishlatiladi?", "options": ["Differensial tenglama", "Algebraik tenglama", "Kvadrat tenglama", "Trigonometrik tenglama"], "correct": 0}, {"question": "Matematik modellashtirishda dasturlash nima uchun kerak?", "options": ["Hisoblashlarni avtomatlashtirish uchun", "Modelni chizish uchun", "Formulalarni yodlash uchun", "Fikrlarni yozish uchun"], "correct": 0}, {"question": "Matematik modelda parametr nima?", "options": ["Tizim holatini belgilovchi kattalik", "Tasodifiy o'zgaruvchi", "Grafikdagi nuqta", "o'lchov birligi"], "correct": 0}, {"question": "Modellashtirishda xatolik darajasi qanday aniqlanadi?", "options": ["Model natijasi bilan haqiqiy natija farqi orqali", "tajriba soni orqali", "nazariy tahlil orqali", "grafik orqali"], "correct": 0}, {"question": "Modelni qo'llashdan asosiy maqsad nima?", "options": ["Tizimni tahlil qilish va qaror qabul qilish", "matematik mashq bajarish", "Tizimni murakkablashtirish", "Tajriba o'tkazish sonini oshirish"], "correct": 0}, {"question": "Matematik modelda o'zgaruvchi nima?", "options": ["Tizimdagi o'zgaruvchan kattalik", "Doimiy qiymat", "vaqt", "raqam"], "correct": 0}, {"question": "Iqtisodiy modelda ko'p uchraydigan parametr?", "options": ["Narx, talab va taklif", "Harorat", "Massasi", "Uzunlik"], "correct": 0}, {"question": "Modelni tekshirishda asosiy mezon nima?", "options": ["Adekvatlik", "Noaniqlik", "Soddalik", "Parametrlar soni"], "correct": 0}, {"question": "Matematik modellashtirishda yechim tahlili nimani bildiradi?", "options": ["Model natijasini baholash va solishtirish", "Modelni yozish", "Ma'lumot yig'ish", "Tizimni soddalashtirish"], "correct": 0}, {"question": "Fizik modellashtirishda o'xshashlik tamoyili nima?", "options": ["Model va obyekt o'xshash sharoitda bo'lishi", "Model kichikroq bo'lishi", "shakli o'xshash bo'lishi", "rang jihatdan o'xshashlik"], "correct": 0}, {"question": "Matematik modellashtirishda grafik usul nima uchun qo'llaniladi?", "options": ["Natijalarni tasvirlash va tahlil qilish", "Hisoblashni o'tkazish uchun", "Formulalarni yozish uchun", "Fikrlarni eslab qolish uchun"], "correct": 0}, {"question": "Differensial tenglama nima?", "options": ["Hosilali tenglama", "Oddiy tenglama", "Algebraik tenglama", "Geometrik tenglama"], "correct": 0}, {"question": "Hosila nimani ko'rsatadi?", "options": ["O'zgarish tezligi", "O'rtacha qiymat", "Umumiy qiymat", "Chegaraviy qiymat"], "correct": 0}, {"question": "Integral nimani topadi?", "options": ["Yig'indini", "Ayirmani", "Ko'paytmani", "Bo'linmani"], "correct": 0}, {"question": "Boshlang'ich shart nima?", "options": ["Boshlanish qiymati", "Oxirgi qiymat", "O'rtacha qiymat", "Maksimal qiymat"], "correct": 0}, {"question": "Chiziqli ODT qanday?", "options": ["Birinchi darajali", "Ikkinchi darajali", "Uchinchi darajali", "To'rtinchi darajali"], "correct": 0}, {"question": "Bir jinsli tenglama nima?", "options": ["O'ng tomoni nol", "Chap tomoni nol", "Ikkala tomon nol", "Hech qaysi nol"], "correct": 0}, {"question": "Umumiy yechim nima?", "options": ["Barcha yechimlar", "Bitta yechim", "Maxsus yechim", "Nol yechim"], "correct": 0}, {"question": "Xususiy yechim nima?", "options": ["Boshlang'ich shartli", "Umumiy holatli", "Cheksiz holatli", "Nol holatli"], "correct": 0}, {"question": "Tartib nima bilan aniqlanadi?", "options": ["Eng yuqori hosila", "Eng past hosila", "Funksiya darajasi", "O'zgaruvchilar soni"], "correct": 0}, {"question": "Ajraluvchi o'zgaruvchili tenglama qanday?", "options": ["x va y alohida", "x va y aralash", "x", "y"], "correct": 0}, {"question": "To'liq differensial nima?", "options": ["Integralga olinadigan", "Hosilaga olinadigan", "Ko'paytiriladigan", "Bo'linadigan"], "correct": 0}, {"question": "Bernulli tenglamasi qanday?", "options": ["y' + py = qy^n", "y' + py = q", "y' = py", "y' = qy"], "correct": 0}, {"question": "Ikkinchi tartibli ODT nechta shart talab qiladi?", "options": ["Ikkita", "Bitta", "Uchta", "To'rta"], "correct": 0}, {"question": "Xarakteristik tenglama nima uchun?", "options": ["Bir jinsli tenglama uchun", "To'liq tenglama uchun", "Chala tenglama uchun", "Oddiy tenglama uchun"], "correct": 0}, {"question": "Vronskiy determinant nima?", "options": ["Yechimlar mustaqilligi", "Yechimlar bog'liqligi", "Tenglama tartibi", "Tenglama turi"], "correct": 0}, {"question": "Operator usuli nima?", "options": ["D differensial belgi", "I integral belgi", "S algebraik belgi", "T trigonometrik belgi"], "correct": 0}, {"question": "Fazoviy tasvir nima?", "options": ["Trayektoriya", "Jadval", "Formula", "Grafik"], "correct": 0}, {"question": "Barqaror yechim nima?", "options": ["Vaqt o'tsa ham o'zgarmaydi", "Vaqt o'tsa o'zgaradi", "Tez o'zgaradi", "Sekin o'zgaradi"], "correct": 0}, {"question": "Asimptotik yechim nima?", "options": ["Cheksizlikdagi xulosa", "Noldagi xulosa", "Bir nuqtadagi xulosa", "Barcha nuqtadagi xulosa"], "correct": 0}, {"question": "Singular yechim nima?", "options": ["Maxsus holat", "Umumiy holat", "Oddiy holat", "Standart holat"], "correct": 0}, {"question": "Optimallashtirish nima?", "options": ["Eng yaxshisini topish", "Eng yomonini topish", "O'rtachasini topish", "Tasodifiyini topish"], "correct": 0}, {"question": "Maqsad funktsiyasi nima?", "options": ["Optimallashuvchi", "Cheklovchi", "Yordamchi", "Qo'llab-quvvatlovchi"], "correct": 0}, {"question": "Cheklash sharti nima?", "options": ["Ruxsat etilgan soha", "Taqiqlangan soha", "Cheksiz soha", "Bo'sh soha"], "correct": 0}, {"question": "Ruxsatlangan yechim nima?", "options": ["Barcha shartlarni qanoatlantiradi", "Ba'zi shartlarni qanoatlantiradi", "Hech qanday shartni qanoatlantirmaydi", "bitta shartni qanoatlantiradi"], "correct": 0}, {"question": "Opor yechim nima?", "options": ["Burchak nuqtasi", "Markaz nuqtasi", "Ichki nuqta", "Tashqi nuqta"], "correct": 0}, {"question": "Simpleks usuli nima?", "options": ["Burchakdan burchakga yurish", "Markazga yurish", "Tasodifiy yurish", "To'g'ri chiziqda yurish"], "correct": 0}, {"question": "Dual masala nima?", "options": ["Asosiy masalaga mos", "Asosiy masaladan farqli", "Asosiy masaladan mustaqil", "Asosiy masaladan murakkab"], "correct": 0}, {"question": "Kvadratik dasturlash nima?", "options": ["Kvadratik maqsad", "Chiziqli maqsad", "Kubik maqsad", "To'rtinchi darajali maqsad"], "correct": 0}, {"question": "Dinamik dasturlash nima?", "options": ["Ko'p bosqichli", "Bitta bosqichli", "Statik", "Doimiy"], "correct": 0}, {"question": "Bellman printsipi nima?", "options": ["Optimal siyosat optimal", "Optimal siyosat suboptimal", "Suboptimal siyosat optimal", "Tasodifiy siyosat optimal"], "correct": 0}, {"question": "Butun sonli dasturlash nima?", "options": ["x_i butun son", "x_i haqiqiy son", "x_i irratsional son", "x_i murakkab son"], "correct": 0}, {"question": "Transport masalasi nima?", "options": ["Yetkazib berish", "Ishlab chiqarish", "Sotish", "Xarid qilish"], "correct": 0}, {"question": "Topshiriq masalasi nima?", "options": ["Eng yaxshi taqsimlash", "Tasodifiy taqsimlash", "Teng taqsimlash", "Proporsional taqsimlash"], "correct": 0}, {"question": "Kompyuter simulyatsiyasi qanday modellashtirish turi?", "options": ["Matematik modellashtirishning amaliy turi", "Fizik model", "Nazariy tahlil", "Analitik modellashtirish"], "correct": 0}, {"question": "Model parametrlarini tanlashda nimaga e'tibor beriladi?", "options": ["Real jarayonning muhim xususiyatlariga", "matematik qulaylikka", "Tizimning rangi va shakliga", "Tasodifiy tanlovga"], "correct": 0}, {"question": "Matematik modellashtirishda chegaraviy shartlar nimani bildiradi?", "options": ["Obyektning tashqi holatdagi qiymatlarini", "Tizim ichki parametrlarini", "vaqt intervalini", "Model murakkabligini"], "correct": 0}, {"question": "Modeldagi asosiy bog'lanish qanday ifodalanadi?", "options": ["Funksiya yoki tenglama yordamida", "Jadval orqali", "Diagramma orqali", "Tasvir orqali"], "correct": 0}, {"question": "Matematik modellashtirishda o'lchov birliklari nima uchun kerak?", "options": ["Fizik ma'noni saqlash uchun", "Hisoblashni qiyinlashtirish uchun", "Grafikni chizish uchun", "Formulalarni bezash uchun"], "correct": 0}, {"question": "Modelni qo'llash natijalari qayerda ishlatiladi?", "options": ["Qaror qabul qilish, bashorat va optimallashtirishda", "nazariy o'rganish uchun", "Hisoblash mashqlarida", "Dasturlash tilini o'rganishda"], "correct": 0}, {"question": "Matematik modellashtirishning asosiy afzalligi nimada?", "options": ["Murakkab jarayonlarni tahlil qilishni osonlashtiradi", "Hisoblashni qiyinlashtiradi", "Tajriba o'rnini butunlay bosadi", "Modelni murakkablashtiradi"], "correct": 0}, {"question": "Optimallashtirish modeli nimani anglatadi?", "options": ["Eng qulay yechimni topishga qaratilgan model", "tahlilga mo'ljallangan model", "Tizimni murakkablashtiruvchi model", "Hech qanday amaliy ahamiyati yo'q model"], "correct": 0}, {"question": "Diskret model deganda nima tushuniladi?", "options": ["Kattaliklar  ayrim qiymatlar qabul qiluvchi model", "O'zgaruvchilar uzluksiz model", "Vaqt doimiy bo'lgan model", "nazariy tahlil uchun model"], "correct": 0}, {"question": "Uzluksiz model deganda nima tushuniladi?", "options": ["O'zgaruvchi kattaliklar uzluksiz o'zgaruvchi model", "tajriba orqali olinadigan model", "Tasodifiy model", "fizik model"], "correct": 0}, {"question": "Tarmoqli model nimani ifodalaydi?", "options": ["Tizim elementlari o'zaro bog'langan graflar orqali ko'rsatilgan model", "chiziqli tenglama tizimi", "Nazariy model", "Dasturlash algoritmi"], "correct": 0}, {"question": "Modelni kalibrlash jarayoni nima?", "options": ["Model parametrlarini moslashtirish", "Modelni bekor qilish", "Modelni grafikda tasvirlash", "Modelni soxta qilib ko'rsatish"], "correct": 0}, {"question": "O'zgaruvchilar soni oshganda model qanday bo'ladi?", "options": ["Murakkablashadi", "Soddalashadi", "O'zgarmaydi", "Yo'qoladi"], "correct": 0}, {"question": "Modelni validatsiya qilishning maqsadi nima?", "options": ["Model natijalari real ma'lumotlarga mosligini aniqlash", "Modelni chizish", "Modelni o'chirish", "Modelni nomlash"], "correct": 0}, {"question": "Soddalashtirilgan modelning afzalligi nimada?", "options": ["Hisoblash oson bo'ladi", "Natija noaniq bo'ladi", "Tajriba soni ortadi", "Yechim murakkablashadi"], "correct": 0}, {"question": "Ko'p omilli modellashtirishda maqsad nima?", "options": ["Bir nechta ta'sir omillarini birgalikda o'rganish", "bitta omilni o'rganish", "Omillarni inkor etish", "Modelni  chizish"], "correct": 0}, {"question": "Modelni boshqarish nima?", "options": ["Modeldagi parametrlarni maqsadga ko'ra o'zgartirish", "Modelni chizish", "Modelni yo'qotish", "Modelni o'qish"], "correct": 0}, {"question": "Matematik modelni algoritmlash nimani bildiradi?", "options": ["Modelni yechish uchun hisoblash tartibini aniqlash", "Modelni soddalashtirish", "Grafik chizish", "Parametrlarni yashirish"], "correct": 0}, {"question": "Tizimli tahlilda model qanday rol o'ynaydi?", "options": ["Murakkab tizimlarni tushuntirish vositasi bo'ladi", "matematik mashq", "Tasodifiylikni oshiradi", "Tajriba o'rnini bosmaydi"], "correct": 0}, {"question": "Deterministik modelda tasodifiylik bo'ladimi?", "options": ["Yo'q", "Har doim bo'ladi", "ayrim hollarda", "Belgisiz"], "correct": 0}, {"question": "Statik modelda vaqt qanday rol o'ynaydi?", "options": ["Vaqt o'zgarmaydi", "Har doim o'zgaradi", "Modeldan chiqariladi", "tahlil qilinadi"], "correct": 0}, {"question": "Matematik modelning natijasi qanday tekshiriladi?", "options": ["Tajriba natijalari bilan solishtirib", "Grafik orqali", "Fikr bilan", "Tasodifiy tanlov bilan"], "correct": 0}, {"question": "Matematik modellashtirishda chegaraviy shartlar nimaga kerak?", "options": ["Model yechimini aniqlash uchun", "Ma'lumotlarni saqlash uchun", "Formulalarni yozish uchun", "Tizimni chizish uchun"], "correct": 0}, {"question": "Modeldagi asosiy bog'lanish nima orqali ifodalanadi?", "options": ["Funksiya yoki tenglama orqali", "Diagramma orqali", "Grafik orqali", "Matn orqali"], "correct": 0}, {"question": "Tarmoq masalasi nima?", "options": ["Oqimni boshqarish", "Bosimni boshqarish", "Haroratni boshqarish", "Namlikni boshqarish"], "correct": 0}, {"question": "Interpolatsiya nima?", "options": ["Nuqtalar orasini to'ldirish", "Nuqtalarni o'chirish", "Nuqtalarni qo'shish", "Nuqtalarni ayirish"], "correct": 0}, {"question": "Ekstrapolyatsiya nima?", "options": ["Chegaradan tashqariga", "Chegaradan ichkariga", "O'rtacha qiymat", "Tasodifiy qiymat"], "correct": 0}, {"question": "Lagranj ko'phadi nima?", "options": ["Interpolatsion ko'phad", "Ekstrapolyatsion ko'phad", "Approksimatsion ko'phad", "Optimizatsion ko'phad"], "correct": 0}, {"question": "Nyuton ko'phadi nima?", "options": ["Ayirmalar usuli", "Qo'shimchalar usuli", "Ko'paytmalar usuli", "Bo'linmalar usuli"], "correct": 0}, {"question": "Splayn nima?", "options": ["Bo'lakli funktsiya", "Butun funktsiya", "Davriy funktsiya", "Tekis funktsiya"], "correct": 0}, {"question": "Xatolik nima?", "options": ["Farq", "Yig'indi", "Ko'paytma", "Bo'linma"], "correct": 0}, {"question": "Absolut xato nima?", "options": ["\u2502a - a\u2502", "a + a", "a \u00b7 a", "a / a"], "correct": 0}, {"question": "Nisbiiy xato nima?", "options": ["\u2502a - a\u2502/\u2502a\u2502", "\u2502a - a\u2502\u00b7\u2502a\u2502", "\u2502a - a\u2502 + \u2502a\u2502", "\u2502a - a\u2502 - \u2502a\u2502"], "correct": 0}, {"question": "Integrallash usuli nima?", "options": ["Yig'indi limiti", "Ayirma limiti", "Ko'paytma limiti", "Bo'linma limiti"], "correct": 0}, {"question": "Trapetsiya formulasi nima?", "options": ["Chiziqli yaqinlash", "Kvadratik yaqinlash", "Kubik yaqinlash", "To'rtinchi darajali yaqinlash"], "correct": 0}, {"question": "Simpson formulasi nima?", "options": ["Kvadratik yaqinlash", "Chiziqli yaqinlash", "Kubik yaqinlash", "Beshinchi darajali yaqinlash"], "correct": 0}, {"question": "Eiler usuli nima?", "options": ["Differensial tenglama uchun", "Algebraik tenglama uchun", "Transsendent tenglama uchun", "Trigonometrik tenglama uchun"], "correct": 0}, {"question": "Runge-Kutta usuli nima?", "options": ["Aniqroq sonli usul", "Tezroq sonli usul", "Sodda sonli usul", "Murakkab sonli usul"], "correct": 0}, {"question": "Shartlashuv nima?", "options": ["Kichik o'zgarishga katta natija", "Katta o'zgarishga kichik natija", "O'zgarishsizlik", "Barqarorlik"], "correct": 0}, {"question": "Yakobi usuli nima?", "options": ["Iteratsion usul", "To'g'ridan-to'g'ri usul", "Grafik usul", "Analitik usul"], "correct": 0}, {"question": "Zeydel usuli nima?", "options": ["Yangilangan iteratsiya", "Eski iteratsiya", "Tasodifiy iteratsiya", "Deterministik iteratsiya"], "correct": 0}, {"question": "Tasodifiy kattalik nima?", "options": ["Turli qiymatli", "Doimiy qiymatli", "Nol qiymatli", "Cheksiz qiymatli"], "correct": 0}, {"question": "Taqsimot funksiyasi nima?", "options": ["F(x) = P(X < x)", "F(x) = P(X = x)", "F(x) = P(X > x)", "F(x) = P(X \u2260 x)"], "correct": 0}, {"question": "Zichlik funksiyasi nima?", "options": ["f(x) = F'(x)", "f(x) = F(x)", "f(x) = 1/F(x)", "f(x) = F\u00b2(x)"], "correct": 0}, {"question": "Matematik kutilma nima?", "options": ["O'rtacha qiymat", "Maksimal qiymat", "Minimal qiymat", "Median qiymat"], "correct": 0}, {"question": "Dispersiya nima?", "options": ["Sochilish", "Yig'ilish", "Barqarorlik", "Doimiylik"], "correct": 0}, {"question": "Standart og'ish nima?", "options": ["\u221aD(X)", "D(X)", "D\u00b2(X)", "1/D(X)"], "correct": 0}, {"question": "Kovariatsiya nima?", "options": ["Bog'liqlik", "Mustaqillik", "Tasodifiylik", "Deterministik"], "correct": 0}, {"question": "Korelyatsiya nima?", "options": ["Chiziqli bog'liqlik", "Nolineyn bog'liqlik", "Tasodifiy bog'liqlik", "Doimiy bog'liqlik"], "correct": 0}, {"question": "Normal taqsimot nima?", "options": ["Qo'ng'iroq shakli", "Uchburchak shakli", "To'rtburchak shakli", "Doira shakli"], "correct": 0}, {"question": "Binomial taqsimot nima?", "options": ["n ta sinovda muvaffaqiyat", "Cheksiz sinovda muvaffaqiyat", "Bitta sinovda muvaffaqiyat", "Yo'q sinovda muvaffaqiyat"], "correct": 0}, {"question": "Puasson taqsimoti nima?", "options": ["Kam uchraydigan hodisa", "Ko'p uchraydigan hodisa", "Doimiy hodisa", "Tasodifiy hodisa"], "correct": 0}, {"question": "Markov zanjiri nima?", "options": ["Kelajak  hozirgiga bog'liq", "Kelajak barcha o'tmishga bog'liq", "Kelajak hech narsaga bog'liq emas", "Kelajak tasodifiy"], "correct": 0}, {"question": "O'tish matritsasi nima?", "options": ["Ehtimolliklar matritsasi", "Qiymatlar matritsasi", "Hadlar matritsasi", "Koeffitsientlar matritsasi"], "correct": 0}, {"question": "Stasionar taqsimot nima?", "options": ["Vaqt o'tsa ham o'zgarmaydi", "Vaqt o'tsa o'zgaradi", "boshida", "oxirida"], "correct": 0}, {"question": "Monte-Karlo usuli nima?", "options": ["Tasodifiy sonlar", "Aniq sonlar", "Butun sonlar", "Haqiqiy sonlar"], "correct": 0}, {"question": "Statistik baho nima?", "options": ["Parametrni baholash", "Funktsiyani baholash", "Integralni baholash", "Differensialni baholash"], "correct": 0}, {"question": "Ishonch oralig'i nima?", "options": ["Ehtimollik bilan oraliq", "Aniq oraliq", "Tasodifiy oraliq", "Doimiy oraliq"], "correct": 0}, {"question": "Gipoteza nima?", "options": ["Tekshiriladigan taxmin", "Isbotlangan faktlar", "Tasodifiy fikr", "Doimiy qoida"], "correct": 0}, {"question": "Regressiya nima?", "options": ["Bog'liqlik tahlili", "Mustaqillik tahlili", "Tasodifiylik tahlili", "Deterministik tahlil"], "correct": 0}, {"question": "Iqtisodiy model nima?", "options": ["Iqtisodiy jarayon ifodasi", "Ijtimoiy jarayon ifodasi", "Siyosiy jarayon ifodasi", "Madaniy jarayon ifodasi"], "correct": 0}, {"question": "Talab funksiyasi nima?", "options": ["Q = D(P)", "Q = S(P)", "Q = C(P)", "Q = I(P)"], "correct": 0}, {"question": "Taklif funksiyasi nima?", "options": ["Q = S(P)", "Q = D(P)", "Q = C(P)", "Q = I(P)"], "correct": 0}, {"question": "Muvozanat nima?", "options": ["D(P) = S(P)", "D(P) > S(P)", "D(P) < S(P)", "D(P) \u2260 S(P)"], "correct": 0}, {"question": "Elastiklik nima?", "options": ["O'zgarishga reaksiya", "O'zgarishsizlik", "Doimiylik", "Barqarorlik"], "correct": 0}, {"question": "Ishlab chiqarish funktsiyasi nima?", "options": ["Y = F(K,L)", "Y = F(P,Q)", "Y = F(X,Y)", "Y = F(R,S)"], "correct": 0}, {"question": "Limit nima?", "options": ["Chegara", "Markaz", "O'rtacha", "Boshlang'ich"], "correct": 0}, {"question": "O'sish nima?", "options": ["Ko'rsatkichlar oshishi", "Ko'rsatkichlar kamayishi", "Ko'rsatkichlar doimiyligi", "Ko'rsatkichlar tasodifiyligi"], "correct": 0}, {"question": "Investitsiya nima?", "options": ["Kapital qo'yish", "Iste'mol qilish", "Tejam qilish", "Xarid qilish"], "correct": 0}, {"question": "Inflyatsiya nima?", "options": ["Narxlar oshishi", "Narxlar kamayishi", "Narxlar doimiyligi", "Narxlar tasodifiyligi"], "correct": 0}, {"question": "Iqtisodiy modellashtirishda asosiy o'zgaruvchilar nima?", "options": ["Narx, ishlab chiqarish hajmi, talab", "Harorat", "Massasi", "Uzunlik"], "correct": 0}, {"question": "Matematik modellashtirishda tahlil bosqichi nimadan iborat?", "options": ["Natijani baholash, solishtirish va xulosa chiqarish", "Modelni chizish", "Fikrni yozish", "Formulani eslab qolish"], "correct": 0}, {"question": "Modelni takomillashtirish nima uchun kerak?", "options": ["Aniqlikni oshirish uchun", "Xatolikni ko'paytirish uchun", "Ma'lumotni kamaytirish uchun", "Tizimni bekor qilish uchun"], "correct": 0}, {"question": "Modelning verifikatsiyasi deganda nima tushuniladi?", "options": ["Modelning matematik jihatdan to'g'riligini tekshirish", "Modelni soddalashtirish", "Modelni chizish", "Modelni o'chirish"], "correct": 0}, {"question": "Matematik modelning afzalligi nimada?", "options": ["Tajriba o'rnini qisman bosadi va natijani tez beradi", "nazariy tahlilga mo'ljallangan", "Tajriba sonini oshiradi", "Hisoblashni qiyinlashtiradi"], "correct": 0}, {"question": "Modelni testlash nima maqsadda bajariladi?", "options": ["Natijani real holatga solishtirish uchun", "Modelni bezatish uchun", "Xatolikni oshirish uchun", "Parametrlarni yashirish uchun"], "correct": 0}, {"question": "Ekonometrik model qanday model?", "options": ["Statistik ma'lumotlarga asoslangan iqtisodiy model", "fizik model", "Nazariy tahlil modeli", "biologik model"], "correct": 0}, {"question": "Modelni kompyuterda dasturlashning foydasi nima?", "options": ["Hisoblash tezligini oshiradi", "Modelni murakkablashtiradi", "Tahlilni imkonsiz qiladi", "Xatolikni ko'paytiradi"], "correct": 0}, {"question": "Modeldagi noaniqlik nima sababdan kelib chiqadi?", "options": ["Ma'lumotlarning yetarli emasligi", "Modelning mukammalligi", "Natijani to'g'ridan-to'g'ri o'lchash", "Fikr almashish"], "correct": 0}, {"question": "Matematik modellashtirishda vaqt o'lchovi qanday belgilanadi?", "options": ["Sekund, daqiqa yoki yil kabi birliklarda", "Ranglar orqali", "Harflar orqali", "Grafik orqali"], "correct": 0}, {"question": "Modelni qo'llashdan kutilgan natija nima?", "options": ["Jarayonni tushunish va optimallashtirish", "Tizimni yo'qotish", "Hisoblashni murakkablashtirish", "Nazariyani buzish"], "correct": 0}, {"question": "Modelning aniqligi nimaga bog'liq?", "options": ["Dastlabki ma'lumotlarning aniqligiga", "Tasodifiy omillarga", "Rasm sifati", "Rang o'zgarishiga"], "correct": 0}, {"question": "Matematik modellashtirish natijasi qaysi sohalarda qo'llaniladi?", "options": ["Fan, texnika, iqtisodiyot, tibbiyotda", "matematika darslarida", "biologiyada", "sportda"], "correct": 0}];
+
+// STATE
+let progress = JSON.parse(localStorage.getItem('mm_progress') || '{}');
+// progress[idx] = 'correct' | 'wrong'
+
+let sessionQuestions = [];
+let currentIdx = 0;
+let sessionScore = 0;
+let quizMode = 'all';
+
+const LETTERS = ['A', 'B', 'C', 'D'];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getUnanswered() {
+  return ALL_QUESTIONS.map((q, i) => ({...q, originalIdx: i}))
+    .filter(q => !progress[q.originalIdx]);
+}
+
+function updateHomeStats() {
+  const answered = Object.keys(progress).length;
+  document.getElementById('hs-answered').textContent = answered;
+  document.getElementById('hs-remaining').textContent = 218 - answered;
+
+  // Update btn
+  const unans = getUnanswered().length;
+  const btn = document.getElementById('btn-unanswered');
+  btn.textContent = `⚡ Javob Berilmaganlar (${unans})`;
+  if (unans === 0) btn.disabled = true;
+
+  // Draw dots
+  const grid = document.getElementById('dots-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 218; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (progress[i] === 'correct' ? ' answered' : (progress[i] === 'wrong' ? ' wrong-answered' : ''));
+    grid.appendChild(d);
+  }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome() {
+  updateHomeStats();
+  showScreen('home');
+}
+
+function resetProgress() {
+  if (confirm("Barcha progressni tozalashni xohlaysizmi?")) {
+    localStorage.removeItem('mm_progress');
+    progress = {};
+    updateHomeStats();
+  }
+}
+
+function startQuiz(mode) {
+  quizMode = mode;
+  let pool;
+  if (mode === 'unanswered') {
+    pool = getUnanswered();
+    if (pool.length === 0) { alert("Barcha savollarga javob berildi!"); return; }
+  } else {
+    pool = ALL_QUESTIONS.map((q, i) => ({...q, originalIdx: i}));
+  }
+
+  const picked = shuffle(pool).slice(0, 25);
+  // For each question, shuffle options but keep track of correct answer
+  sessionQuestions = picked.map(q => {
+    const correctText = q.options[q.correct];
+    const shuffled = shuffle(q.options);
+    return {
+      question: q.question,
+      options: shuffled,
+      correctText,
+      correctIdx: shuffled.indexOf(correctText),
+      originalIdx: q.originalIdx
+    };
+  });
+
+  currentIdx = 0;
+  sessionScore = 0;
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = sessionQuestions[currentIdx];
+  document.getElementById('q-number').textContent = `SAVOL ${String(currentIdx + 1).padStart(3, '0')}`;
+  document.getElementById('q-text').textContent = q.question;
+  document.getElementById('q-counter').textContent = `Savol ${currentIdx + 1} / ${sessionQuestions.length}`;
+  document.getElementById('score-live').textContent = `✓ ${sessionScore}`;
+
+  const pct = (currentIdx / sessionQuestions.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${LETTERS[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('feedback-bar').className = 'feedback-bar';
+  document.getElementById('btn-next').className = 'btn-next';
+}
+
+function selectAnswer(chosenIdx) {
+  const q = sessionQuestions[currentIdx];
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach(b => b.disabled = true);
+
+  const isCorrect = chosenIdx === q.correctIdx;
+  buttons[chosenIdx].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) buttons[q.correctIdx].classList.add('correct');
+
+  // Save progress
+  if (isCorrect) {
+    sessionScore++;
+    progress[q.originalIdx] = 'correct';
+  } else {
+    progress[q.originalIdx] = 'wrong';
+  }
+  localStorage.setItem('mm_progress', JSON.stringify(progress));
+
+  // Feedback
+  const fb = document.getElementById('feedback-bar');
+  const fbIcon = document.getElementById('feedback-icon');
+  const fbText = document.getElementById('feedback-text');
+  if (isCorrect) {
+    fb.className = 'feedback-bar correct';
+    fbIcon.textContent = '✓';
+    fbText.textContent = "To'g'ri javob!";
+  } else {
+    fb.className = 'feedback-bar wrong';
+    fbIcon.textContent = '✗';
+    fbText.textContent = `Noto'g'ri. To'g'ri javob: "${q.options[q.correctIdx]}"`;
+  }
+
+  document.getElementById('btn-next').className = 'btn-next visible';
+  document.getElementById('score-live').textContent = `✓ ${sessionScore}`;
+}
+
+function nextQuestion() {
+  currentIdx++;
+  if (currentIdx >= sessionQuestions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResults() {
+  const total = sessionQuestions.length;
+  const pct = Math.round((sessionScore / total) * 100);
+
+  document.getElementById('r-correct').textContent = sessionScore;
+  document.getElementById('r-wrong').textContent = total - sessionScore;
+  document.getElementById('r-total').textContent = total;
+  document.getElementById('ring-pct').textContent = pct + '%';
+
+  let title = '';
+  if (pct >= 90) title = '🏆 Ajoyib natija!';
+  else if (pct >= 70) title = '👍 Yaxshi ish!';
+  else if (pct >= 50) title = '📚 Davom eting!';
+  else title = '💪 Ko\'proq mashq kerak';
+  document.getElementById('result-title').textContent = title;
+
+  const badge = document.getElementById('mode-badge-result');
+  if (quizMode === 'unanswered') {
+    badge.innerHTML = '<span class="mode-badge">⚡ Javob berilmagan rejim</span>';
+  } else {
+    badge.innerHTML = '';
+  }
+
+  const unans = getUnanswered().length;
+  document.getElementById('btn-retry-unanswered').textContent = `⚡ Qolganlarni O'rganish (${unans})`;
+  if (unans === 0) document.getElementById('btn-retry-unanswered').disabled = true;
+
+  showScreen('results');
+
+  // Animate ring
+  const circumference = 427.26;
+  const offset = circumference - (pct / 100) * circumference;
+  setTimeout(() => {
+    document.getElementById('ring-fill').style.strokeDashoffset = offset;
+  }, 100);
+}
+
+// Init
+progress = JSON.parse(localStorage.getItem('mm_progress') || '{}');
+updateHomeStats();
+</script>
+</body>
+</html>
